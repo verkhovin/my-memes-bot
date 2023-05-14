@@ -3,7 +3,6 @@ package dev.resolvt.moimemibot;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import dev.resolvt.moimemibot.service.MemeSuggestionService;
 import org.slf4j.Logger;
@@ -36,6 +35,7 @@ public class SuggestionsBot {
     }
 
     private void processUpdate(Update update) {
+        LOG.info("Got update: {}", update);
         Message message = update.message();
         if (message != null && message.photo() != null) {
             memeSuggestionService.suggestMeme(message);

@@ -6,7 +6,6 @@ import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.DeleteMessage;
-import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,7 @@ public class MemeSuggestionService {
                 .replyMarkup(new InlineKeyboardMarkup(
                         new InlineKeyboardButton("Post")
                                 .callbackData("post")
-                )).replyToMessageId(message.messageId())
+                ))
         );
     }
 
