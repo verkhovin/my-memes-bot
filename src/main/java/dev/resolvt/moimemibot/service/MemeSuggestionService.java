@@ -25,11 +25,11 @@ public class MemeSuggestionService {
     }
 
     public void suggestMeme(Message message) {
-        PhotoSize photo = getPhoto(message);
         if (message.chat().id().equals(ownerChatId)) {
-            telegramBot.execute(new SendPhoto(targetChannelId, photo.fileId()));
+            approveMeme(message);
             return;
         }
+        PhotoSize photo = getPhoto(message);
         telegramBot.execute(new SendPhoto(ownerChatId, photo.fileId())
                 .caption("from @" + message.from().username())
                 .replyMarkup(new InlineKeyboardMarkup(
