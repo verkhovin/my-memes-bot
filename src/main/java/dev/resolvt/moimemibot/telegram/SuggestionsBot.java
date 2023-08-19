@@ -24,19 +24,21 @@ import static com.pengrad.telegrambot.UpdatesListener.CONFIRMED_UPDATES_NONE;
 
 public class SuggestionsBot {
     private final TelegramBot telegramBot;
-    private final Long ownerChatId;
+    private final List<Long> ownerChatIds;
     private final Long targetChannelId;
+    private final Long ownerRecommendationChatId;
 
     private final Map<String, MediaGroup> mediaGroupHolder = new ConcurrentHashMap<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(SuggestionsBot.class);
 
     public SuggestionsBot(TelegramBot telegramBot,
-                          @Value("${telegram.senderId-chat-id}") Long ownerChatId,
+                          @Value("${telegram.senderId-chat-id}") List<Long> ownerChatIds,
                           @Value("${telegram.target-channel-id}") Long targetChannelId) {
         this.telegramBot = telegramBot;
-        this.ownerChatId = ownerChatId;
+        this.ownerChatIds = ownerChatIds;
         this.targetChannelId = targetChannelId;
+        ownerRecommendationChatId = ownerChatIds.get(0);
         telegramBot.setUpdatesListener(this::processUpdates);
     }
 
@@ -111,12 +113,13 @@ public class SuggestionsBot {
         });
 
         singleMessages.forEach(message -> {
+            LOG.info("Got message {}", message);
             if (isOwner(message.chat().id())) {
                 publishToChannel(message);
             } else {
                 telegramBot.execute(buildMediaMessageSendRequest(
                         message,
-                        ownerChatId,
+                        ownerRecommendationChatId,
                         buildSuggestionMessageCaption(message),
                         buildPostKeyboard()
                 ));
@@ -142,13 +145,13 @@ public class SuggestionsBot {
             } else if (mediaMessage.audio() != null) {
                 return new InputMediaDocument(mediaMessage.audio().fileId());
             } else {
-                telegramBot.execute(new SendMessage(ownerChatId, "Unsupported media from @" + mediaGroup.senderId()));
-                throw new RuntimeException("Unsupported media " + ownerChatId);
+                telegramBot.execute(new SendMessage(ownerRecommendationChatId, "Unsupported media from @" + mediaGroup.senderId()));
+                throw new RuntimeException("Unsupported media " + ownerRecommendationChatId);
             }
         }).toArray(InputMedia[]::new);
         mediaObjects[0] = mediaObjects[0].caption(caption);
         return List.of(
-                new SendMediaGroup(ownerChatId, mediaObjects)
+                new SendMediaGroup(ownerRecommendationChatId, mediaObjects)
         );
     }
 
@@ -176,13 +179,13 @@ public class SuggestionsBot {
     }
 
     private boolean isOwner(Long chatId) {
-        return ownerChatId.equals(chatId);
+        return ownerChatIds.contains(chatId);
     }
 
     public void publishToChannel(Message message) {
         final BaseRequest<?, ?> sendRequest = buildMediaMessageSendRequest(message, targetChannelId, message.caption(), null);
         telegramBot.execute(sendRequest);
-        telegramBot.execute(new DeleteMessage(ownerChatId, message.messageId()));
+        telegramBot.execute(new DeleteMessage(ownerRecommendationChatId, message.messageId()));
     }
 
     private BaseRequest<?, ?> buildMediaMessageSendRequest(Message message, long channelId, String caption, Keyboard replyMarkup) {

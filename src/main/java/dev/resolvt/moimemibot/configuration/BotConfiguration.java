@@ -11,14 +11,14 @@ import java.util.List;
 @Configuration
 public class BotConfiguration {
     private final String token;
-    private final Long ownerChatId;
+    private final List<Long> ownerChatIds;
     private final Long targetChannelId;
 
     public BotConfiguration(@Value("${telegram.token}") String token,
-                            @Value("${telegram.owner-chat-id}") Long ownerChatId,
+                            @Value("${telegram.owner-chat-id}") List<Long> ownerChatIds,
                             @Value("${telegram.target-channel-id}") Long targetChannelId) {
         this.token = token;
-        this.ownerChatId = ownerChatId;
+        this.ownerChatIds = ownerChatIds;
         this.targetChannelId = targetChannelId;
     }
 
@@ -32,6 +32,6 @@ public class BotConfiguration {
     private SuggestionsBot initializeBotHandler() {
         // TODO source data from db
         TelegramBot telegramBot = new TelegramBot(token);
-        return new SuggestionsBot(telegramBot, ownerChatId, targetChannelId);
+        return new SuggestionsBot(telegramBot, ownerChatIds, targetChannelId);
     }
 }
