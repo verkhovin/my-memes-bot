@@ -100,7 +100,7 @@ public class SuggestionsBot {
         mediaGroups.forEach(mediaGroup -> {
             if (isOwner(mediaGroup.senderId())) {
                 // if owner sends media group -> send to channel immediately in separate messages
-                mediaGroup.messages().forEach(this::publishToChannel);
+                mediaGroup.messages().forEach(message -> publishToChannel(message, true));
             } else {
                 // otherwise send to channel as mediagroup
                 try {
@@ -115,7 +115,7 @@ public class SuggestionsBot {
         singleMessages.forEach(message -> {
             LOG.info("Got message {}", message);
             if (isOwner(message.chat().id())) {
-                publishToChannel(message);
+                publishToChannel(message, true);
             } else {
                 telegramBot.execute(buildMediaMessageSendRequest(
                         message,
@@ -183,7 +183,17 @@ public class SuggestionsBot {
     }
 
     public void publishToChannel(Message message) {
-        final BaseRequest<?, ?> sendRequest = buildMediaMessageSendRequest(message, targetChannelId, message.caption(), null);
+        publishToChannel(message, false);
+    }
+
+    public void publishToChannel(Message message, boolean clearCaption) {
+        String caption;
+        if (clearCaption) {
+            caption = null;
+        } else {
+            caption = message.caption();
+        }
+        final BaseRequest<?, ?> sendRequest = buildMediaMessageSendRequest(message, targetChannelId, caption, null);
         telegramBot.execute(sendRequest);
         telegramBot.execute(new DeleteMessage(ownerRecommendationChatId, message.messageId()));
     }
