@@ -172,11 +172,17 @@ public class SuggestionsBot {
     @NotNull
     private static String buildSuggestionMessageCaption(Message message) {
         String sign = "from @" + message.from().username();
-        if (message.caption() == null) {
+
+        if (skipCaption(message)) {
             return sign;
         }
         return message.caption() + "\n" + sign;
     }
+
+    private static boolean skipCaption(Message message) {
+        return message.caption() == null || message.forwardFromMessageId() != null;
+    }
+
 
     private boolean isOwner(Long chatId) {
         return ownerChatIds.contains(chatId);
